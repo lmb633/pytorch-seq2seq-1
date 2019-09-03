@@ -158,11 +158,13 @@ def train_net():
     OUTPUT_DIM = len(TRG.vocab)
     epochs_since_improvement = 0
     if os.path.exists(CHECKPOINT):
+        print('load checkpoint')
         checkpoint = torch.load(CHECKPOINT)
         start_epoch = checkpoint['epoch'] + 1
         epochs_since_improvement = checkpoint['epochs_since_improvement']
         model = checkpoint['model']
     else:
+        print('train from beginning')
         start_epoch = 0
         enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
         dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
@@ -176,8 +178,6 @@ def train_net():
     def count_parameters(model):
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-    print(f'The model has {count_parameters(enc):,} trainable parameters')
-    print(f'The model has {count_parameters(dec):,} trainable parameters')
     print(f'The model has {count_parameters(model):,} trainable parameters')
 
     optimizer = optim.Adam(model.parameters())
