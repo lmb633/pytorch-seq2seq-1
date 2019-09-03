@@ -10,6 +10,7 @@ import spacy
 import random
 import math
 import time
+import os
 
 SEED = 1234
 
@@ -17,7 +18,6 @@ random.seed(SEED)
 torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 
 ENC_EMB_DIM = 256
 DEC_EMB_DIM = 256
@@ -28,6 +28,7 @@ DEC_DROPOUT = 0.5
 N_EPOCHS = 10
 CLIP = 1
 PRINT_TREQ = 10
+CHECKPOINT = 'BEST_checkpoint.tar'
 
 
 def gen_data():
@@ -99,18 +100,22 @@ def train(model, iterator, optimizer, criterion, clip, epoch):
         optimizer.step()
         epoch_loss += loss.item()
         if i % PRINT_TREQ == 0:
-            print('epoch:({0}/{1})  loss:{2} '.format(i, epoch, epoch_loss / (i + 1)))
+            print('epoch:{0} ({1}/{2})  loss:{3} '.format(epoch, i, len(iterator), epoch_loss / (i + 1)))
     return epoch_loss / len(iterator)
 
 
 def evaluate(model, iterator, criterion):
     model.eval()
     epoch_loss = 0
+    file = open('result', 'wb')
     with torch.no_grad():
         for i, batch in enumerate(iterator):
             src = batch.src
             trg = batch.trg
             output = model(src, trg, 0)  # turn off teacher forcing
+            print(src[0])
+            print(trg[0])
+            print(output[0])
             # trg = [trg sent len, batch size]
             # output = [trg sent len, batch size, output dim]
 
@@ -151,10 +156,17 @@ def train_net():
     gen_data()
     INPUT_DIM = len(SRC.vocab)
     OUTPUT_DIM = len(TRG.vocab)
-    enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
-    dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
-
-    model = Seq2Seq(enc, dec, device).to(device)
+    epochs_since_improvement = 0
+    if os.path.exists(CHECKPOINT):
+        checkpoint = torch.load(CHECKPOINT)
+        start_epoch = checkpoint['epoch'] + 1
+        epochs_since_improvement = checkpoint['epochs_since_improvement']
+        model = checkpoint['model']
+    else:
+        start_epoch = 0
+        enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
+        dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
+        model = Seq2Seq(enc, dec, device).to(device)
 
     # global epoch, train_loss, valid_loss, epoch_mins, epoch_secs, test_loss
 
@@ -171,10 +183,9 @@ def train_net():
     optimizer = optim.Adam(model.parameters())
 
     PAD_IDX = TRG.vocab.stoi['<pad>']
-    epochs_since_improvement = 0
     criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
 
-    for epoch in range(N_EPOCHS):
+    for epoch in range(start_epoch, N_EPOCHS):
         start_time = time.time()
 
         train_loss = train(model, train_iterator, optimizer, criterion, CLIP, epoch)
