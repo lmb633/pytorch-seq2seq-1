@@ -18,8 +18,7 @@ torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-INPUT_DIM = len(SRC.vocab)
-OUTPUT_DIM = len(TRG.vocab)
+
 ENC_EMB_DIM = 256
 DEC_EMB_DIM = 256
 HID_DIM = 512
@@ -150,7 +149,8 @@ def save_checkpoint(epoch, epochs_since_improvement, model, best_loss, is_best, 
 
 def train_net():
     gen_data()
-
+    INPUT_DIM = len(SRC.vocab)
+    OUTPUT_DIM = len(TRG.vocab)
     enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
     dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
 
