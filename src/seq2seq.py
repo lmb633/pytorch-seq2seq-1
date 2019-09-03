@@ -4,7 +4,7 @@ import torch.optim as optim
 
 from torchtext.datasets import TranslationDataset, Multi30k
 from torchtext.data import Field, BucketIterator
-from src.model import Encoder, Decoder, Seq2Seq
+from .model import Encoder, Decoder, Seq2Seq
 import spacy
 
 import random
