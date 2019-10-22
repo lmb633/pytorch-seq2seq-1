@@ -4,7 +4,7 @@ import torch.optim as optim
 
 from torchtext.datasets import TranslationDataset, Multi30k
 from torchtext.data import Field, BucketIterator
-from .model import Encoder, Decoder, Seq2Seq
+from seq2seq.model import Encoder, Decoder, Seq2Seq
 import spacy
 
 import random
@@ -25,7 +25,7 @@ HID_DIM = 512
 N_LAYERS = 2
 ENC_DROPOUT = 0.5
 DEC_DROPOUT = 0.5
-N_EPOCHS = 10
+N_EPOCHS = 1000
 CLIP = 1
 PRINT_TREQ = 10
 CHECKPOINT = 'BEST_checkpoint.tar'
@@ -61,7 +61,7 @@ def gen_data():
     print(f"Number of training examples: {len(train_data.examples)}")
     print(f"Number of validation examples: {len(valid_data.examples)}")
     print(f"Number of testing examples: {len(test_data.examples)}")
-    print(vars(train_data.examples[0]))
+    print(len(train_data.examples))
     SRC.build_vocab(train_data, min_freq=2)
     TRG.build_vocab(train_data, min_freq=2)
     print(f"Unique tokens in source (de) vocabulary: {len(SRC.vocab)}")
@@ -113,9 +113,10 @@ def evaluate(model, iterator, criterion):
             src = batch.src
             trg = batch.trg
             output = model(src, trg, 0)  # turn off teacher forcing
-            print(src[0])
-            print(trg[0])
-            print(output[0])
+            print(src.shape)
+            print(trg.shape)
+            print(output.shape)
+
             # trg = [trg sent len, batch size]
             # output = [trg sent len, batch size, output dim]
 
@@ -141,7 +142,7 @@ def save_checkpoint(epoch, epochs_since_improvement, model, best_loss, is_best, 
     state = {'epoch': epoch,
              'epochs_since_improvement': epochs_since_improvement,
              'loss': best_loss,
-             'model': model,
+             'model.py': model,
              'optimizer': optimizer}
     # filename = 'checkpoint_' + str(epoch) + '_' + str(loss) + '.tar'
     filename = 'checkpoint.tar'
@@ -162,7 +163,7 @@ def train_net():
         checkpoint = torch.load(CHECKPOINT)
         start_epoch = checkpoint['epoch'] + 1
         epochs_since_improvement = checkpoint['epochs_since_improvement']
-        model = checkpoint['model']
+        model = checkpoint['model.py']
     else:
         print('train from beginning')
         start_epoch = 0
@@ -178,9 +179,9 @@ def train_net():
     def count_parameters(model):
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-    print(f'The model has {count_parameters(model):,} trainable parameters')
+    print(f'The model.py has {count_parameters(model.py):,} trainable parameters')
 
-    optimizer = optim.Adam(model.parameters())
+    optimizer = optim.Adam(model.parameters(), weight_decay=0.005)
 
     PAD_IDX = TRG.vocab.stoi['<pad>']
     criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
@@ -211,3 +212,4 @@ def train_net():
 
 if __name__ == '__main__':
     train_net()
+    # gen_data()

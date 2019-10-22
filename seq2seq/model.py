@@ -19,15 +19,15 @@ class Encoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, src):
-        # src = [src sent len, batch size]
+        # seq2seq = [seq2seq sent len, batch size]
 
         embedded = self.dropout(self.embedding(src))
 
-        # embedded = [src sent len, batch size, emb dim]
+        # embedded = [seq2seq sent len, batch size, emb dim]
 
         outputs, (hidden, cell) = self.rnn(embedded)
 
-        # outputs = [src sent len, batch size, hid dim * n directions]
+        # outputs = [seq2seq sent len, batch size, hid dim * n directions]
         # hidden = [n layers * n directions, batch size, hid dim]
         # cell = [n layers * n directions, batch size, hid dim]
 
@@ -102,7 +102,7 @@ class Seq2Seq(nn.Module):
             "Encoder and decoder must have equal number of layers!"
 
     def forward(self, src, trg, teacher_forcing_ratio=0.5):
-        # src = [src sent len, batch size]
+        # seq2seq = [seq2seq sent len, batch size]
         # trg = [trg sent len, batch size]
         # teacher_forcing_ratio is probability to use teacher forcing
         # e.g. if teacher_forcing_ratio is 0.75 we use ground-truth inputs 75% of the time
