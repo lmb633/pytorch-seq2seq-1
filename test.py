@@ -10,18 +10,20 @@ import time
 
 pad_idx = 1
 
+
 def map_val(a, b):
     if a is True:
         return 1
     return 0
+
+
 def make_masks(src, trg):
     # src = [batch size, src sent len]
     # trg = [batch size, trg sent len]
 
-    src_mask = (src != pad_idx).unsqueeze(1).unsqueeze(2)
+    src_mask = torch.tensor([[1 if word != pad_idx else 0 for word in sent] for sent in src], dtype=torch.uint8).unsqueeze(1).unsqueeze(2)
 
-
-    trg_pad_mask = (trg != pad_idx).unsqueeze(1).unsqueeze(3)
+    trg_pad_mask = torch.tensor([[1 if word != pad_idx else 0 for word in sent] for sent in trg], dtype=torch.uint8).unsqueeze(1).unsqueeze(3)
     print(src_mask)
     print(trg_pad_mask)
     print(src_mask.shape)
@@ -80,7 +82,7 @@ def get_data():
 
 def test(train_iterator):
     for i, batch in enumerate(train_iterator):
-        if i < 0:
+        if i < 2:
             src = batch.src
             trg = batch.trg
             print(i, batch)
@@ -99,16 +101,9 @@ def test(train_iterator):
             print(result2)
 
 
-src = torch.rand((2, 6))
+train_iterator, valid_iterator, test_iterator = get_data()
 
-
-def map_val(a, b):
-    if a is True:
-        return 1
-    return 0
-
-
-print(src.map_(src, map_val))
+test(train_iterator)
 
 # src[0][4] = 1
 # src[0][5] = 1

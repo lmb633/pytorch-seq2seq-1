@@ -3,7 +3,7 @@ import torch.nn as nn
 from torchtext.datasets import Multi30k
 from torchtext.data import Field, BucketIterator
 
-from .model import Encoder, Decoder, Seq2Seq, NoamOpt, DecoderLayer, EncoderLayer, SelfAttention, PositionwiseFeedforward
+from model import Encoder, Decoder, Seq2Seq, NoamOpt, DecoderLayer, EncoderLayer, SelfAttention, PositionwiseFeedforward
 
 import spacy
 import random
