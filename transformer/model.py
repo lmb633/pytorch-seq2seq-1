@@ -247,9 +247,9 @@ class Seq2Seq(nn.Module):
         # src = [batch size, src sent len]
         # trg = [batch size, trg sent len]
 
-        src_mask = torch.tensor([[1 if word != self.pad_idx else 0 for word in sent] for sent in src], dtype=torch.uint8).unsqueeze(1).unsqueeze(2)
+        src_mask = torch.tensor([[1 if word != self.pad_idx else 0 for word in sent] for sent in src], dtype=torch.uint8, device=self.device).unsqueeze(1).unsqueeze(2)
 
-        trg_pad_mask = torch.tensor([[1 if word != self.pad_idx else 0 for word in sent] for sent in trg], dtype=torch.uint8).unsqueeze(1).unsqueeze(3)
+        trg_pad_mask = torch.tensor([[1 if word != self.pad_idx else 0 for word in sent] for sent in trg], dtype=torch.uint8, device=self.device).unsqueeze(1).unsqueeze(3)
 
         trg_len = trg.shape[1]
 
