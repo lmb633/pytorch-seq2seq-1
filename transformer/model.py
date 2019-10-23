@@ -243,13 +243,19 @@ class Seq2Seq(nn.Module):
         self.pad_idx = pad_idx
         self.device = device
 
+    def map_val(a, b):
+        if a is True:
+            return 1
+        return 0
+
     def make_masks(self, src, trg):
         # src = [batch size, src sent len]
         # trg = [batch size, trg sent len]
 
         src_mask = (src != self.pad_idx).unsqueeze(1).unsqueeze(2)
-
+        src_mask = src_mask.map_(src_mask, self.map_val)
         trg_pad_mask = (trg != self.pad_idx).unsqueeze(1).unsqueeze(3)
+        trg_pad_mask = trg_pad_mask.map_(trg_pad_mask, self.map_val)
 
         trg_len = trg.shape[1]
 
